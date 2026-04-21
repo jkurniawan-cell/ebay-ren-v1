@@ -1,0 +1,7 @@
+m0_priority_name,m1_initiative_name,key_launch_name,original_start_quarter,original_end_quarter,updated_start_quarter,updated_end_quarter,geo_category,target_geos,roadmap_change,change_rationale,change_rationale_comment,cross_priority_dependencies
+FC Fashion,Play 1: Fix the Fundamentals Buying experience,Listing Quality (remove custom size) Apparel,Q1-2026,Q1-2026,Q2-2026,Q2-2026,Big 3,"US,UK,DE",Deferred,Blocked due to eng capacity,Waiting for platform team to complete API updates,C2C
+FC Fashion,Play 1: Fix the Fundamentals Buying experience,Listing Quality (remove custom size) Shoes,Q2-2026,Q2-2026,Q2-2026,Q2-2026,Big 3,"DE,US",No Change,,,
+FC Fashion,Play 2: Set Trust Standard AG/Auth,Expand AG across existing markets + improve capabilities,Q4-2026,Q4-2026,Q4-2026,Q4-2026,Global,Global,No Change,,CSA Expansion and other improvements,Live
+FC Fashion,Play 2: Set Trust Standard AG/Auth,Pre-Auth V2: EDD UX carryover,Q2-2026,Q2-2026,Q2-2026,Q2-2026,Big 3,"US,UK,DE",New,Prioritized,New feature to improve authentication flow,Live
+GBX,User preferences for international settings,Risk GBX Model optimizations,Q1-2026,Q1-2026,Q1-2026,Q2-2026,Big 3,"US,UK,DE",No Change,,,
+Trust,Risk Management,Fraud Detection Enhancement,Q2-2026,Q2-2026,Q3-2026,Q3-2026,Remaining Big 4,"FR,IT,AU",Deferred,Constrained,Resource allocation shifted to higher priority items,Shipping
