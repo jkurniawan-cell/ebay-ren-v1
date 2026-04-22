@@ -97,18 +97,18 @@ export function Timeline({ data, quarters }: TimelineProps) {
     <div className="h-full overflow-auto">
       <div className="min-w-full inline-block align-middle">
         {/* Timeline Grid - No Legend, Max Compact */}
-        <div className="rounded overflow-hidden bg-white shadow-sm">
+        <div className="rounded bg-white shadow-sm">
           {/* Header Row - Quarter Labels */}
           <div
-            className="grid border-b border-gray-300 bg-gradient-to-r from-gray-50 to-white sticky top-0 z-20"
+            className="grid border-b border-gray-300 bg-white sticky top-0 z-30 shadow-sm"
             style={{ gridTemplateColumns: gridCols }}
           >
             <div
               onClick={() => handleSort('m1')}
-              className="px-2 py-1 text-xs font-semibold text-white uppercase border-r border-gray-300 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1"
+              className="px-2 py-1 text-xs font-semibold text-white uppercase border-r border-gray-300 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1 shadow-md"
               style={{ backgroundColor: '#78909c' }}
             >
-              M1
+              Category
               {sortColumn === 'm1' && (
                 <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
               )}
@@ -118,7 +118,7 @@ export function Timeline({ data, quarters }: TimelineProps) {
                 <div
                   key={quarter}
                   onClick={() => handleSort(quarter)}
-                  className="px-1 py-1 text-xs font-semibold text-center text-white border-r last:border-r-0 border-white/30 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1"
+                  className="px-1 py-1 text-xs font-semibold text-center text-white border-r last:border-r-0 border-white/30 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1 shadow-md"
                   style={{ backgroundColor: '#3464f2' }}
                 >
                   {quarter}
@@ -135,10 +135,10 @@ export function Timeline({ data, quarters }: TimelineProps) {
             <div key={m0.m0_priority} className="border-b border-gray-200">
               {/* M0 Header */}
               <div
-                className="bg-gray-100 border-b border-gray-200 sticky z-10 flex items-center justify-center py-4"
+                className="bg-gray-100 border-b border-gray-200 sticky z-10 flex items-center justify-center py-2"
                 style={{ top: '28px' }}
               >
-                <div className="text-xl font-bold text-gray-900 bg-gray-200 px-8 py-3 rounded border-2 border-gray-700">
+                <div className="text-xl font-bold text-gray-900 bg-gray-200 px-8 py-1.5 rounded border-2 border-gray-700 shadow-2xl">
                   {m0.m0_priority}
                 </div>
               </div>
@@ -151,7 +151,7 @@ export function Timeline({ data, quarters }: TimelineProps) {
                   style={{ gridTemplateColumns: gridCols }}
                 >
                   {/* M1 Name - Minimal */}
-                  <div className="px-1.5 py-1 flex items-start border-r border-gray-300" style={{ backgroundColor: '#78909c' }}>
+                  <div className="px-1.5 py-1 flex items-start border-r border-gray-300 shadow-md" style={{ backgroundColor: '#78909c' }}>
                     <div className="text-xs font-normal leading-tight line-clamp-2 text-white" style={{ lineHeight: '1.2' }}>
                       {m1.m1_name}
                     </div>

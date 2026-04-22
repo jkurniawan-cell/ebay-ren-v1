@@ -168,7 +168,7 @@ export function FilterBar({
 
     return (
       <div className="relative">
-        <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+        <label className="block text-xs font-bold text-gray-900 mb-1.5 flex items-center gap-1">
           {label}
           {tooltip && (
             <span

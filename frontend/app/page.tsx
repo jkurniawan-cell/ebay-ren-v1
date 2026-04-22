@@ -8,15 +8,11 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-// eBay Logo Component with multicolor letters
+// eBay Logo Component
 function EbayLogo() {
   return (
-    <span className="text-2xl font-bold tracking-tight">
-      <span style={{ color: "#E53238" }}>e</span>
-      <span style={{ color: "#0064D2" }}>B</span>
-      <span style={{ color: "#F5AF02" }}>a</span>
-      <span style={{ color: "#86B817" }}>y</span>
-      <span className="text-gray-900 ml-1">REN</span>
+    <span className="text-2xl font-bold tracking-tight text-gray-900">
+      eBay REN
     </span>
   )
 }
@@ -168,6 +164,11 @@ function PillarColumn({ pillar }: { pillar: Pillar }) {
         <p className="text-xs text-gray-600 mt-1.5 italic leading-relaxed">
           {pillar.description}
         </p>
+        {!pillar.isAvailable && (
+          <div className="mt-2 inline-block px-3 py-1 bg-gray-200 rounded-full">
+            <p className="text-xs font-semibold text-gray-700">Roadmaps not available</p>
+          </div>
+        )}
       </div>
 
       {/* Priority Grid */}
