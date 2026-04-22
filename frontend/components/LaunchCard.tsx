@@ -37,16 +37,16 @@ export function LaunchCard({ launch, allPriorities }: LaunchCardProps) {
   const borderColor = isDeferred ? '#FF5757' : geoColor;
 
   return (
-    <div className="relative group max-w-sm">
+    <div className="relative group">
       <div
-        className="rounded-xl p-3 cursor-pointer hover:shadow-xl hover:scale-[1.03] hover:z-10 transition-all duration-150 ease-out flex flex-col justify-center text-left"
+        className="rounded p-1.5 cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:z-10 transition-all duration-100 flex flex-col text-left"
         style={{
           backgroundColor: geoColor,
           borderColor: borderColor,
           borderWidth: borderWidth || '0px',
           borderStyle: 'solid',
-          boxShadow: borderWidth === '4px' ? `0 0 0 ${borderWidth} ${borderColor}, 0 4px 16px rgba(0,0,0,0.06)` : '0 4px 16px rgba(0,0,0,0.06)',
-          minHeight: '64px'
+          boxShadow: borderWidth === '3px' ? `0 0 0 ${borderWidth} ${borderColor}, 0 2px 8px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.06)',
+          minHeight: '40px'
         }}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
@@ -54,19 +54,19 @@ export function LaunchCard({ launch, allPriorities }: LaunchCardProps) {
       >
         {/* Cross-Priority Badges */}
         {launch.cross_priority_dependencies_list && launch.cross_priority_dependencies_list.length > 0 && (
-          <div className="flex gap-1 mb-1.5 flex-wrap">
-            {launch.cross_priority_dependencies_list.slice(0, 2).map((dep) => (
+          <div className="flex gap-0.5 mb-0.5 flex-wrap">
+            {launch.cross_priority_dependencies_list.slice(0, 1).map((dep) => (
               <span
                 key={dep}
-                className="px-1.5 py-0.5 bg-purple-600 text-white rounded-full text-[8px] font-semibold truncate max-w-[50px]"
+                className="px-1 py-0.5 bg-purple-600 text-white rounded text-[9px] font-semibold truncate max-w-[50px]"
                 title={dep}
               >
                 {dep}
               </span>
             ))}
-            {launch.cross_priority_dependencies_list.length > 2 && (
-              <span className="px-1.5 py-0.5 bg-purple-400 text-white rounded-full text-[8px] font-semibold">
-                +{launch.cross_priority_dependencies_list.length - 2}
+            {launch.cross_priority_dependencies_list.length > 1 && (
+              <span className="px-1 py-0.5 bg-purple-400 text-white rounded text-[9px] font-semibold">
+                +{launch.cross_priority_dependencies_list.length - 1}
               </span>
             )}
           </div>
@@ -74,7 +74,7 @@ export function LaunchCard({ launch, allPriorities }: LaunchCardProps) {
 
         {/* Launch Name */}
         <div
-          className={`font-normal text-xs leading-tight mb-1.5 overflow-hidden ${geoColor === '#22a3df53' ? 'text-gray-900' : 'text-gray-900'}`}
+          className="font-normal text-xs leading-tight mb-0.5 overflow-hidden text-gray-900"
           style={{
             lineHeight: '1.3',
             display: '-webkit-box',
@@ -88,15 +88,15 @@ export function LaunchCard({ launch, allPriorities }: LaunchCardProps) {
         </div>
 
         {/* Country Flags */}
-        <div className="flex gap-1.5 items-center flex-wrap mt-auto">
-          {launch.target_geos_list.slice(0, 4).map((geo) => (
+        <div className="flex gap-0.5 items-center flex-wrap mt-auto">
+          {launch.target_geos_list.slice(0, 3).map((geo) => (
             <span key={geo} className="text-[10px] opacity-90" title={geo}>
               {COUNTRY_FLAGS[geo] || geo}
             </span>
           ))}
-          {launch.target_geos_list.length > 4 && (
+          {launch.target_geos_list.length > 3 && (
             <span className="text-[9px] text-gray-600" title={launch.target_geos_list.join(', ')}>
-              +{launch.target_geos_list.length - 4}
+              +{launch.target_geos_list.length - 3}
             </span>
           )}
         </div>

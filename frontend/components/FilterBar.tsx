@@ -6,6 +6,7 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { MARKETS, ROADMAP_CHANGES, COUNTRY_FLAGS, COUNTRY_NAMES } from '@/lib/constants';
 
 interface FilterBarProps {
@@ -90,6 +91,13 @@ export function FilterBar({
     tooltip?: string;
   }) => {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 });
+
+    React.useEffect(() => {
+      setMounted(true);
+    }, []);
 
     const getDisplayName = (option: string) => {
       if (showFlags && COUNTRY_FLAGS[option]) {
@@ -98,46 +106,32 @@ export function FilterBar({
       return option;
     };
 
-    return (
-      <div className="relative">
-        <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
-          {label}
-          {tooltip && (
-            <span
-              className="text-gray-400 cursor-help text-[10px]"
-              title={tooltip}
-            >
-              ⓘ
-            </span>
-          )}
-        </label>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-3 text-sm text-left bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all flex items-center justify-between"
-        >
-          <span>
-            {selected.length === 0 ? (
-              <span className="text-gray-500">{placeholder}</span>
-            ) : selected.length === options.length ? (
-              <span className="text-gray-900">All ({options.length})</span>
-            ) : (
-              <span className="text-blue-600 font-medium">
-                {selected.length} selected
-              </span>
-            )}
-          </span>
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+    // Calculate dropdown position when opening
+    React.useEffect(() => {
+      if (isOpen && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + 8, // 8px gap (mt-2)
+          left: rect.left,
+          width: rect.width
+        });
+      }
+    }, [isOpen]);
 
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
-            <div className="absolute z-50 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+    const dropdownContent = isOpen && mounted ? (
+      <>
+        <div
+          className="fixed inset-0 z-[50]"
+          onClick={() => setIsOpen(false)}
+        />
+        <div
+          className="fixed z-[100] bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`
+          }}
+        >
               <div className="p-2 border-b border-gray-200">
                 <button
                   onClick={() => {
@@ -170,6 +164,45 @@ export function FilterBar({
               </div>
             </div>
           </>
+    ) : null;
+
+    return (
+      <div className="relative">
+        <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+          {label}
+          {tooltip && (
+            <span
+              className="text-gray-400 cursor-help text-[10px]"
+              title={tooltip}
+            >
+              ⓘ
+            </span>
+          )}
+        </label>
+        <button
+          ref={buttonRef}
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-4 py-3 text-sm text-left bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all flex items-center justify-between"
+        >
+          <span>
+            {selected.length === 0 ? (
+              <span className="text-gray-500">{placeholder}</span>
+            ) : selected.length === options.length ? (
+              <span className="text-gray-900">All ({options.length})</span>
+            ) : (
+              <span className="text-blue-600 font-medium">
+                {selected.length} selected
+              </span>
+            )}
+          </span>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {mounted && typeof document !== 'undefined' && dropdownContent && createPortal(
+          dropdownContent,
+          document.body
         )}
       </div>
     );
@@ -230,7 +263,7 @@ export function FilterBar({
           {hasActiveFilters && (
             <button
               onClick={onReset}
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-[10px] text-gray-600 hover:text-gray-900 transition-colors"
             >
               Clear All
             </button>
@@ -238,9 +271,9 @@ export function FilterBar({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 text-[10px] text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded disabled:opacity-50 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Refresh

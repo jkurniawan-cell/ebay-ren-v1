@@ -28,8 +28,8 @@ export function Timeline({ data, quarters }: TimelineProps) {
     )
   );
 
-  // Calculate dynamic grid columns based on number of quarters - more compact
-  const gridCols = `150px repeat(${quarters.length}, minmax(120px, 1fr))`;
+  // Calculate dynamic grid columns based on number of quarters - ultra compact
+  const gridCols = `200px repeat(${quarters.length}, minmax(90px, 1fr))`;
 
   // Helper function to check if a quarter is within a launch's timespan
   const isQuarterInLaunchSpan = (quarter: QuarterLabel, startQuarter: string, endQuarter: string): boolean => {
@@ -52,43 +52,24 @@ export function Timeline({ data, quarters }: TimelineProps) {
   };
 
   return (
-    <div className="overflow-x-auto pb-4">
+    <div className="h-full overflow-auto">
       <div className="min-w-full inline-block align-middle">
-        {/* Legend - Compact */}
-        <div className="mb-3 flex items-center gap-2 text-xs bg-white p-2 rounded-lg border border-gray-200">
-          <span className="font-semibold text-gray-900 mr-2">Key:</span>
-          <div className="flex items-center gap-1.5">
-            <div className="w-12 h-3 rounded" style={{ backgroundColor: '#22a3df53' }}></div>
-            <span className="text-gray-700">Big 3</span>
-          </div>
-          <div className="flex items-center gap-1.5 ml-3">
-            <div className="w-12 h-3 rounded" style={{ backgroundColor: '#FFE6C5' }}></div>
-            <span className="text-gray-700">Remaining Big 4</span>
-          </div>
-          <div className="flex items-center gap-1.5 ml-3">
-            <div className="w-12 h-3 rounded" style={{ backgroundColor: '#E8E8E8' }}></div>
-            <span className="text-gray-700">Global</span>
-          </div>
-        </div>
-
-        {/* Timeline Grid */}
-        <div className="rounded-2xl overflow-hidden bg-white shadow-soft-md">
+        {/* Timeline Grid - No Legend, Max Compact */}
+        <div className="rounded overflow-hidden bg-white shadow-sm">
           {/* Header Row - Quarter Labels */}
           <div
-            className="grid border-b-2 border-gray-300 bg-gradient-to-r from-gray-50 to-white"
+            className="grid border-b border-gray-300 bg-gradient-to-r from-gray-50 to-white sticky top-0 z-20"
             style={{ gridTemplateColumns: gridCols }}
           >
-            <div className="px-3 py-2.5 text-sm font-normal text-white uppercase border-r-2 border-gray-300 tracking-wide" style={{ backgroundColor: '#78909c', letterSpacing: '0.02em' }}>
-              M1 Plays
+            <div className="px-2 py-1 text-xs font-semibold text-white uppercase border-r border-gray-300" style={{ backgroundColor: '#78909c' }}>
+              M1
             </div>
-            {quarters.map((quarter, idx) => {
-              // Use consistent blue for all quarters
-              const bgColor = '#3464f2';
+            {quarters.map((quarter) => {
               return (
                 <div
                   key={quarter}
-                  className="px-2 py-2.5 text-sm font-normal text-center text-white border-r-2 last:border-r-0 border-white/30 tracking-wide"
-                  style={{ backgroundColor: bgColor, letterSpacing: '0.01em' }}
+                  className="px-1 py-1 text-xs font-semibold text-center text-white border-r last:border-r-0 border-white/30"
+                  style={{ backgroundColor: '#3464f2' }}
                 >
                   {quarter}
                 </div>
@@ -96,44 +77,34 @@ export function Timeline({ data, quarters }: TimelineProps) {
             })}
           </div>
 
-          {/* M0 Groups */}
+          {/* M0 Groups - Ultra Compact */}
           {data.data.map((m0, m0Idx) => (
-            <div key={m0.m0_priority} className={`${m0Idx > 0 ? 'mt-8' : ''}`}>
-              {/* M0 Priority Header */}
+            <div key={m0.m0_priority} className="border-b border-gray-200">
+              {/* M0 Header - Minimal */}
               <div
-                className="grid relative overflow-hidden"
-                style={{ gridTemplateColumns: gridCols }}
+                className="bg-gray-100 border-b border-gray-200 sticky z-10 flex items-center justify-center py-1.5"
+                style={{ top: '20px' }}
               >
-                <div className="px-3 py-2.5 col-span-full text-center" style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)'
-                }}>
-                  <h3 className="text-xl font-normal text-gray-900 uppercase tracking-wide">
-                    {m0.m0_priority}
-                  </h3>
-                  {m0.business_unit && (
-                    <p className="text-[10px] text-gray-500 mt-1 font-normal">{m0.business_unit}</p>
-                  )}
+                <div className="text-xs font-semibold text-gray-900 bg-gray-200 px-4 py-0.5 rounded">
+                  {m0.m0_priority}
                 </div>
               </div>
 
-              {/* M1 Rows */}
+              {/* M1 Rows - Compressed */}
               {m0.m1_initiatives.map((m1, idx) => (
                 <div
                   key={`${m0.m0_priority}-${m1.m1_name}-${idx}`}
                   className="grid hover:bg-blue-50/20 transition-colors"
                   style={{ gridTemplateColumns: gridCols }}
                 >
-                  {/* M1 Name - Left Column */}
-                  <div className="relative px-2.5 py-3 flex items-start" style={{
-                    backgroundColor: '#78909c',
-                    borderRight: '1px solid #e0e0e0'
-                  }}>
-                    <div className="text-xs font-normal leading-tight line-clamp-3 overflow-hidden pt-1 text-white" style={{ lineHeight: '1.3' }}>
+                  {/* M1 Name - Minimal */}
+                  <div className="px-1.5 py-1 flex items-start border-r border-gray-300" style={{ backgroundColor: '#78909c' }}>
+                    <div className="text-xs font-normal leading-tight line-clamp-2 text-white" style={{ lineHeight: '1.2' }}>
                       {m1.m1_name}
                     </div>
                   </div>
 
-                  {/* Quarter Columns */}
+                  {/* Quarter Columns - Compact */}
                   {quarters.map((quarter) => {
                     const launchesInQuarter = m1.key_launches.filter(
                       (launch) =>
@@ -147,12 +118,9 @@ export function Timeline({ data, quarters }: TimelineProps) {
                     return (
                       <div
                         key={quarter}
-                        className="p-2 min-h-[80px] bg-white relative"
-                        style={{
-                          borderRight: '1px solid #e5e7eb'
-                        }}
+                        className="p-1 min-h-[50px] bg-white border-r last:border-r-0 border-gray-200"
                       >
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           {launchesInQuarter.map((launch, launchIdx) => (
                             <LaunchCard
                               key={`${launch.key_launch_name}-${launchIdx}`}

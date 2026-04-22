@@ -13,6 +13,11 @@ import { FilterBar } from '@/components/FilterBar';
 import { Timeline } from '@/components/Timeline';
 import { CSVUpload } from '@/components/CSVUpload';
 import { ApproveButton } from '@/components/ApproveButton';
+import { StatusChart } from '@/components/StatusChart';
+import { RationaleChart } from '@/components/RationaleChart';
+import { EngCapacityChart } from '@/components/EngCapacityChart';
+import { ChangeLogTable } from '@/components/ChangeLogTable';
+import { TimelineByPriority } from '@/components/TimelineByPriority';
 import { apiClient } from '@/lib/api';
 import type { RoadmapData, QuarterLabel } from '@/types/roadmap';
 import Papa from 'papaparse';
@@ -48,6 +53,9 @@ function DashboardContent() {
   const [selectedRoadmapChanges, setSelectedRoadmapChanges] = useState<string[]>([]);
   const [selectedDeliveryOwners, setSelectedDeliveryOwners] = useState<string[]>([]);
   const [selectedBeneficiaries, setSelectedBeneficiaries] = useState<string[]>([]);
+
+  // Page toggle state
+  const [activeView, setActiveView] = useState<'roadmap' | 'changelog' | 'by-priority'>('roadmap');
 
   // Fetch roadmap data
   const fetchRoadmapData = async () => {
@@ -300,46 +308,11 @@ function DashboardContent() {
     URL.revokeObjectURL(url);
   };
 
-  // PNG Export
-  const handleExportPNG = async () => {
-    if (!timelineRef) {
-      alert('Timeline not ready for export');
-      return;
-    }
-
-    try {
-      const canvas = await html2canvas(timelineRef, {
-        backgroundColor: '#fafafa',
-        scale: 2, // High quality
-        logging: false,
-        useCORS: true,
-        windowWidth: timelineRef.scrollWidth,
-        windowHeight: timelineRef.scrollHeight
-      });
-
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          alert('Failed to generate image');
-          return;
-        }
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-
-        link.href = url;
-        link.download = `eBay_Roadmap_Timeline_${new Date().toISOString().split('T')[0]}.png`;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(url);
-      }, 'image/png');
-
-    } catch (error) {
-      console.error('PNG export failed:', error);
-      alert('Failed to export PNG. Please try again.');
-    }
+  // Export to 16:9 Slide
+  const handleExportSlide = () => {
+    // Open slide view in new window
+    const slideUrl = `/slide?mode=${mode}&planning_cycle=${mode === 'upcoming' ? 'Current' : selectedHistoryCycle}&m0s=${selectedM0s.join(',')}&markets=${selectedMarkets.join(',')}&roadmap_changes=${selectedRoadmapChanges.join(',')}`;
+    window.open(slideUrl, '_blank');
   };
 
   // Fetch available planning cycles for History dropdown
@@ -364,129 +337,219 @@ function DashboardContent() {
   }, [selectedM0s, selectedMarkets, selectedRoadmapChanges, selectedDeliveryOwners, selectedBeneficiaries, mode, selectedHistoryCycle]);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Top Navigation */}
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-3">
-          <a href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Home
-          </a>
-        </div>
-      </div>
-
-      {/* Header Section */}
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex items-start justify-between">
-            {/* Left: Mode Toggle */}
-            <div>
+    <div className="h-screen flex flex-col bg-white overflow-hidden">
+      {/* Compact Header - Single Row */}
+      <div className="border-b border-gray-200 flex-shrink-0">
+        <div className="px-4 py-1.5 flex items-center justify-between">
+          {/* Left: Title & Mode */}
+          <div className="flex items-center gap-4">
+            <h1 className="text-sm font-semibold text-gray-900">eBay REN</h1>
+            <div className="scale-75 origin-left">
               <ModeToggle mode={mode} onModeChange={setMode} />
             </div>
+          </div>
 
-            {/* Center: Title */}
-            <div className="flex-1 text-center">
-              <h1 className="text-2xl font-semibold text-gray-900 tracking-normal">
-                Roadmap Intelligence Engine
-              </h1>
-              {lastRefreshed && (
-                <p className="text-xs text-gray-500 mt-1.5">
-                  Last Updated: {new Intl.DateTimeFormat('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                  }).format(lastRefreshed)}
-                </p>
-              )}
-            </div>
+          {/* Center: Last Updated */}
+          {lastRefreshed && (
+            <p className="text-[10px] text-gray-500">
+              Updated: {new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }).format(lastRefreshed)}
+            </p>
+          )}
 
-            {/* Right: Export Buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleExportCSV}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
-              >
-                📊 CSV
-              </button>
-              <button
-                onClick={handleExportPNG}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
-              >
-                🖼️ PNG
-              </button>
-            </div>
+          {/* Right: Export Buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleExportCSV}
+              className="px-2 py-1 text-[10px] text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+            >
+              CSV
+            </button>
+            <button
+              onClick={handleExportSlide}
+              className="px-2 py-1 text-[10px] text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+            >
+              Slide
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-4">
-          <FilterBar
-            m0Priorities={m0Priorities}
-            availableDeliveryOwners={availableDeliveryOwners}
-            availableBeneficiaries={availableBeneficiaries}
-            availableMarkets={availableMarkets}
-            availableRoadmapChanges={availableRoadmapChanges}
-            selectedM0s={selectedM0s}
-            selectedMarkets={selectedMarkets}
-            selectedRoadmapChanges={selectedRoadmapChanges}
-            selectedDeliveryOwners={selectedDeliveryOwners}
-            selectedBeneficiaries={selectedBeneficiaries}
-            onM0Change={setSelectedM0s}
-            onMarketChange={setSelectedMarkets}
-            onRoadmapChangeChange={setSelectedRoadmapChanges}
-            onDeliveryOwnerChange={setSelectedDeliveryOwners}
-            onBeneficiaryChange={setSelectedBeneficiaries}
-            onReset={handleResetFilters}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-            mode={mode}
-            selectedHistoryCycle={selectedHistoryCycle}
-            availableCycles={availableCycles}
-            onHistoryCycleChange={setSelectedHistoryCycle}
-            uploadComponent={
-              mode === 'upcoming' ? (
-                <CSVUpload
-                  onUploadSuccess={handleUploadSuccess}
-                  onUploadError={handleUploadError}
-                />
-              ) : undefined
-            }
-          />
+      {/* Compact Charts - Single Row */}
+      <div className="border-b border-gray-200 flex-shrink-0 bg-gray-50">
+        <div className="px-4 py-1.5 grid grid-cols-3 gap-4">
+          {/* Roadmap Change Chart */}
+          <div className="space-y-1.5">
+            {roadmapData && <StatusChart data={roadmapData} />}
+            <div
+              onClick={() => setActiveView('changelog')}
+              className="w-full px-2 py-0.5 text-[10px] text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer text-center transition-colors"
+            >
+              view change log
+            </div>
+          </div>
+
+          {/* Rationale Chart */}
+          <div>
+            {roadmapData && <RationaleChart data={roadmapData} />}
+          </div>
+
+          {/* Eng Capacity Chart */}
+          <div>
+            {roadmapData && <EngCapacityChart data={roadmapData} />}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Filters */}
+      <div className="border-b border-gray-200 flex-shrink-0">
+        <div className="px-4 py-1">
+          <div className="scale-90 origin-top-left">
+            <FilterBar
+              m0Priorities={m0Priorities}
+              availableDeliveryOwners={availableDeliveryOwners}
+              availableBeneficiaries={availableBeneficiaries}
+              availableMarkets={availableMarkets}
+              availableRoadmapChanges={availableRoadmapChanges}
+              selectedM0s={selectedM0s}
+              selectedMarkets={selectedMarkets}
+              selectedRoadmapChanges={selectedRoadmapChanges}
+              selectedDeliveryOwners={selectedDeliveryOwners}
+              selectedBeneficiaries={selectedBeneficiaries}
+              onM0Change={setSelectedM0s}
+              onMarketChange={setSelectedMarkets}
+              onRoadmapChangeChange={setSelectedRoadmapChanges}
+              onDeliveryOwnerChange={setSelectedDeliveryOwners}
+              onBeneficiaryChange={setSelectedBeneficiaries}
+              onReset={handleResetFilters}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+              mode={mode}
+              selectedHistoryCycle={selectedHistoryCycle}
+              availableCycles={availableCycles}
+              onHistoryCycleChange={setSelectedHistoryCycle}
+              uploadComponent={
+                mode === 'upcoming' ? (
+                  <CSVUpload
+                    onUploadSuccess={handleUploadSuccess}
+                    onUploadError={handleUploadError}
+                  />
+                ) : undefined
+              }
+            />
+          </div>
 
           {/* Upload Status Messages */}
-          {uploadSuccess && (
-            <div className="mt-3 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-xs text-green-800 flex items-center gap-2">
-              <span className="text-green-600">✓</span> CSV uploaded successfully
-            </div>
-          )}
-
-          {uploadError && (
-            <div className="mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-md text-xs text-red-800 flex items-center gap-2">
-              <span className="text-red-600">✕</span> {uploadError}
+          {(uploadSuccess || uploadError) && (
+            <div className="mt-1">
+              {uploadSuccess && (
+                <div className="px-2 py-1 bg-green-50 border border-green-200 rounded text-[10px] text-green-800 flex items-center gap-1">
+                  <span>✓</span> Uploaded
+                </div>
+              )}
+              {uploadError && (
+                <div className="px-2 py-1 bg-red-50 border border-red-200 rounded text-[10px] text-red-800 flex items-center gap-1">
+                  <span>✕</span> {uploadError}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Main Timeline */}
-      <div className="bg-gray-50">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div ref={setTimelineRef}>
-            {roadmapData ? (
-              <Timeline data={roadmapData} quarters={quarters} />
-            ) : (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-sm text-gray-400">Loading roadmap data...</div>
-              </div>
-            )}
+      {/* Compact Toggle */}
+      <div className="border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="px-4 flex gap-2 justify-between items-center">
+          {/* Left: View Tabs */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveView('roadmap')}
+              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+                activeView === 'roadmap'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Roadmap
+            </button>
+            <button
+              onClick={() => setActiveView('by-priority')}
+              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+                activeView === 'by-priority'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Priorities by Market
+            </button>
+            <button
+              onClick={() => setActiveView('changelog')}
+              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+                activeView === 'changelog'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Change Log
+            </button>
           </div>
+
+          {/* Right: Geo Legend */}
+          <div className="flex items-center gap-3 text-[10px] font-medium">
+            <span className="text-gray-700">Key:</span>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-3 rounded" style={{ backgroundColor: '#B3D4FF' }}></div>
+              <span className="text-gray-700">Big 3</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-3 rounded" style={{ backgroundColor: '#FFE8B3' }}></div>
+              <span className="text-gray-700">Remaining Big 4</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-3 rounded" style={{ backgroundColor: '#E0E0E0' }}></div>
+              <span className="text-gray-700">Global</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area - Fills Remaining Height */}
+      <div className="flex-1 bg-gray-50 overflow-auto">
+        <div className="h-full px-4 py-2">
+          {activeView === 'roadmap' ? (
+            <div ref={setTimelineRef} className="h-full">
+              {roadmapData ? (
+                <Timeline data={roadmapData} quarters={quarters} />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-xs text-gray-400">Loading roadmap...</div>
+                </div>
+              )}
+            </div>
+          ) : activeView === 'by-priority' ? (
+            <div className="h-full">
+              {roadmapData ? (
+                <TimelineByPriority data={roadmapData} quarters={quarters} selectedMarkets={selectedMarkets} />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-xs text-gray-400">Loading roadmap...</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            roadmapData ? (
+              <ChangeLogTable data={roadmapData} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-xs text-gray-400">Loading change log...</div>
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
