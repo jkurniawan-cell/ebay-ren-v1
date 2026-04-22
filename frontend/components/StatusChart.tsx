@@ -56,7 +56,7 @@ export function StatusChart({ data }: StatusChartProps) {
   return (
     <div className="space-y-1.5">
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-900">Roadmap change</h3>
+      <h3 className="text-xs font-bold text-gray-900">Roadmap change</h3>
 
       {/* Stacked Bar */}
       <div className="relative h-6 bg-gray-100 rounded overflow-hidden flex">

@@ -15,6 +15,9 @@ interface TimelineProps {
 }
 
 export function Timeline({ data, quarters }: TimelineProps) {
+  const [sortColumn, setSortColumn] = React.useState<string | null>(null);
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+
   // Get all unique priorities for color mapping
   const allPriorities = Array.from(
     new Set(
@@ -30,6 +33,16 @@ export function Timeline({ data, quarters }: TimelineProps) {
 
   // Calculate dynamic grid columns based on number of quarters - ultra compact
   const gridCols = `200px repeat(${quarters.length}, minmax(90px, 1fr))`;
+
+  // Handle column header click for sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
 
   // Helper function to check if a quarter is within a launch's timespan
   const isQuarterInLaunchSpan = (quarter: QuarterLabel, startQuarter: string, endQuarter: string): boolean => {
@@ -51,6 +64,35 @@ export function Timeline({ data, quarters }: TimelineProps) {
     return quarterIndex >= minIndex && quarterIndex <= maxIndex;
   };
 
+  // Sort data based on current sort column and direction
+  const sortedData = React.useMemo(() => {
+    if (!sortColumn) return data.data;
+
+    return data.data.map((m0) => {
+      const sortedM1s = [...m0.m1_initiatives].sort((a, b) => {
+        let compareValue = 0;
+
+        if (sortColumn === 'm1') {
+          // Sort by M1 name
+          compareValue = a.m1_name.localeCompare(b.m1_name);
+        } else {
+          // Sort by number of launches in the selected quarter
+          const aLaunches = a.key_launches.filter((launch) =>
+            isQuarterInLaunchSpan(sortColumn as QuarterLabel, launch.updated_start_quarter || '', launch.updated_end_quarter || '')
+          ).length;
+          const bLaunches = b.key_launches.filter((launch) =>
+            isQuarterInLaunchSpan(sortColumn as QuarterLabel, launch.updated_start_quarter || '', launch.updated_end_quarter || '')
+          ).length;
+          compareValue = aLaunches - bLaunches;
+        }
+
+        return sortDirection === 'asc' ? compareValue : -compareValue;
+      });
+
+      return { ...m0, m1_initiatives: sortedM1s };
+    });
+  }, [data.data, sortColumn, sortDirection, quarters]);
+
   return (
     <div className="h-full overflow-auto">
       <div className="min-w-full inline-block align-middle">
@@ -61,31 +103,42 @@ export function Timeline({ data, quarters }: TimelineProps) {
             className="grid border-b border-gray-300 bg-gradient-to-r from-gray-50 to-white sticky top-0 z-20"
             style={{ gridTemplateColumns: gridCols }}
           >
-            <div className="px-2 py-1 text-xs font-semibold text-white uppercase border-r border-gray-300" style={{ backgroundColor: '#78909c' }}>
+            <div
+              onClick={() => handleSort('m1')}
+              className="px-2 py-1 text-xs font-semibold text-white uppercase border-r border-gray-300 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1"
+              style={{ backgroundColor: '#78909c' }}
+            >
               M1
+              {sortColumn === 'm1' && (
+                <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+              )}
             </div>
             {quarters.map((quarter) => {
               return (
                 <div
                   key={quarter}
-                  className="px-1 py-1 text-xs font-semibold text-center text-white border-r last:border-r-0 border-white/30"
+                  onClick={() => handleSort(quarter)}
+                  className="px-1 py-1 text-xs font-semibold text-center text-white border-r last:border-r-0 border-white/30 cursor-pointer hover:opacity-80 flex items-center justify-center gap-1"
                   style={{ backgroundColor: '#3464f2' }}
                 >
                   {quarter}
+                  {sortColumn === quarter && (
+                    <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  )}
                 </div>
               );
             })}
           </div>
 
           {/* M0 Groups - Ultra Compact */}
-          {data.data.map((m0, m0Idx) => (
+          {sortedData.map((m0, m0Idx) => (
             <div key={m0.m0_priority} className="border-b border-gray-200">
-              {/* M0 Header - Minimal */}
+              {/* M0 Header */}
               <div
-                className="bg-gray-100 border-b border-gray-200 sticky z-10 flex items-center justify-center py-1.5"
-                style={{ top: '20px' }}
+                className="bg-gray-100 border-b border-gray-200 sticky z-10 flex items-center justify-center py-4"
+                style={{ top: '28px' }}
               >
-                <div className="text-xs font-semibold text-gray-900 bg-gray-200 px-4 py-0.5 rounded">
+                <div className="text-xl font-bold text-gray-900 bg-gray-200 px-8 py-3 rounded border-2 border-gray-700">
                   {m0.m0_priority}
                 </div>
               </div>

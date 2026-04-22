@@ -46,7 +46,7 @@ export function RationaleChart({ data }: RationaleChartProps) {
   return (
     <div className="space-y-1.5">
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-900">Change Rationale</h3>
+      <h3 className="text-xs font-bold text-gray-900">Change Rationale</h3>
 
       {/* Horizontal Bars - Top 3 only */}
       <div className="space-y-1">

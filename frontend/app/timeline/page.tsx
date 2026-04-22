@@ -343,7 +343,19 @@ function DashboardContent() {
         <div className="px-4 py-1.5 flex items-center justify-between">
           {/* Left: Title & Mode */}
           <div className="flex items-center gap-4">
-            <h1 className="text-sm font-semibold text-gray-900">eBay REN</h1>
+            <div className="flex items-center gap-2">
+              <a
+                href="/"
+                className="text-xs text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Home
+              </a>
+              <span className="text-gray-300">|</span>
+              <h1 className="text-sm font-semibold text-gray-900">eBay REN</h1>
+            </div>
             <div className="scale-75 origin-left">
               <ModeToggle mode={mode} onModeChange={setMode} />
             </div>
@@ -469,7 +481,7 @@ function DashboardContent() {
           <div className="flex gap-2">
             <button
               onClick={() => setActiveView('roadmap')}
-              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+              className={`px-3 py-1 text-sm font-medium border-b-2 transition-colors ${
                 activeView === 'roadmap'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -479,7 +491,7 @@ function DashboardContent() {
             </button>
             <button
               onClick={() => setActiveView('by-priority')}
-              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+              className={`px-3 py-1 text-sm font-medium border-b-2 transition-colors ${
                 activeView === 'by-priority'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -489,7 +501,7 @@ function DashboardContent() {
             </button>
             <button
               onClick={() => setActiveView('changelog')}
-              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors ${
+              className={`px-3 py-1 text-sm font-medium border-b-2 transition-colors ${
                 activeView === 'changelog'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
