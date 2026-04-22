@@ -19,6 +19,42 @@ interface TimelineByPriorityProps {
 export function TimelineByPriority({ data, quarters, selectedMarkets }: TimelineByPriorityProps) {
   const [sortColumn, setSortColumn] = React.useState<string | null>(null);
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+  const [columnWidths, setColumnWidths] = React.useState({ m0: 40 });
+  const [resizing, setResizing] = React.useState<string | null>(null);
+  const [startX, setStartX] = React.useState(0);
+  const [startWidth, setStartWidth] = React.useState(0);
+
+  // Handle column resize
+  const handleResizeStart = (e: React.MouseEvent, column: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(column);
+    setStartX(e.clientX);
+    setStartWidth(columnWidths[column as keyof typeof columnWidths]);
+  };
+
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizing) return;
+      const diff = e.clientX - startX;
+      const newWidth = Math.max(20, startWidth + diff);
+      setColumnWidths(prev => ({ ...prev, [resizing]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+
+    if (resizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing, startX, startWidth]);
 
   // Get all unique priorities for color mapping
   const allPriorities = Array.from(
@@ -121,33 +157,26 @@ export function TimelineByPriority({ data, quarters, selectedMarkets }: Timeline
           <thead className="sticky top-0 z-20">
             <tr className="border-b border-gray-300 bg-gradient-to-r from-gray-50 to-white">
               <th
-                onClick={() => handleSort('m0')}
-                className="px-2 py-1 text-sm font-bold text-white uppercase w-[150px] bg-gray-700 cursor-pointer hover:opacity-80"
+                className="px-1 py-1 text-sm font-bold text-white uppercase bg-gray-700 relative group"
+                style={{ width: `${columnWidths.m0}px`, minWidth: `${columnWidths.m0}px`, maxWidth: `${columnWidths.m0}px` }}
               >
-                <div className="flex items-center justify-center gap-1">
-                  M0 Priority
+                <div onClick={() => handleSort('m0')} className="flex items-center justify-center gap-1 text-[10px] leading-tight cursor-pointer hover:opacity-80">
+                  M0
                   {sortColumn === 'm0' && (
-                    <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                    <span className="text-[8px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
                   )}
                 </div>
-              </th>
-              <th
-                onClick={() => handleSort('m1')}
-                className="px-2 py-1 text-xs font-semibold text-white uppercase w-[150px] cursor-pointer hover:opacity-80"
-                style={{ backgroundColor: '#78909c' }}
-              >
-                <div className="flex items-center justify-center gap-1">
-                  M1
-                  {sortColumn === 'm1' && (
-                    <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
-                  )}
-                </div>
+                <div
+                  onMouseDown={(e) => handleResizeStart(e, 'm0')}
+                  className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 group-hover:bg-blue-300"
+                  style={{ userSelect: 'none' }}
+                />
               </th>
               {quarters.map((quarter) => (
                 <th
                   key={quarter}
                   onClick={() => handleSort(quarter)}
-                  className="px-1 py-1 text-xs font-semibold text-center text-white min-w-[90px] cursor-pointer hover:opacity-80"
+                  className="px-1 py-1 text-xs font-semibold text-center text-white w-[100px] cursor-pointer hover:opacity-80"
                   style={{ backgroundColor: '#3464f2' }}
                 >
                   <div className="flex items-center justify-center gap-1">
@@ -176,8 +205,6 @@ export function TimelineByPriority({ data, quarters, selectedMarkets }: Timeline
                   const m0A = Array.from(dataA.m0_priorities).sort().join(', ');
                   const m0B = Array.from(dataB.m0_priorities).sort().join(', ');
                   return sortDirection === 'asc' ? m0A.localeCompare(m0B) : m0B.localeCompare(m0A);
-                } else if (sortColumn === 'm1') {
-                  return sortDirection === 'asc' ? m1A.localeCompare(m1B) : m1B.localeCompare(m1A);
                 } else {
                   // Sort by number of launches in the quarter
                   const launchesA = dataA.launches.filter((launch) =>
@@ -207,9 +234,9 @@ export function TimelineByPriority({ data, quarters, selectedMarkets }: Timeline
                 <React.Fragment key={market}>
                   {/* Market Header Row */}
                   <tr>
-                    <td colSpan={2 + quarters.length} className="bg-gray-100 border-b border-gray-300 sticky z-10 py-4" style={{ top: '28px' }}>
+                    <td colSpan={1 + quarters.length} className="bg-gray-100 border-b border-gray-300 sticky z-10 py-2" style={{ top: '28px' }}>
                       <div className="flex items-center justify-center">
-                        <div className="text-xl font-bold text-gray-900 bg-gray-200 px-8 py-3 rounded border-2 border-gray-700 flex items-center gap-3">
+                        <div className="text-xl font-bold text-gray-900 bg-gray-200 px-8 py-1.5 rounded border-2 border-gray-700 shadow-2xl flex items-center gap-3">
                           <span className="text-2xl">{COUNTRY_FLAGS[market] || ''}</span>
                           <span>{COUNTRY_NAMES[market] || market}</span>
                         </div>
@@ -234,20 +261,13 @@ export function TimelineByPriority({ data, quarters, selectedMarkets }: Timeline
                           {isFirstInGroup && (
                             <td
                               rowSpan={rowSpan}
-                              className="px-2 py-1 align-top bg-gray-700"
+                              className="px-2 py-1 align-top bg-gray-700 shadow-2xl"
                             >
-                              <div className="text-sm font-bold leading-tight text-white" style={{ lineHeight: '1.2' }}>
+                              <div className="text-xs font-normal leading-tight text-white" style={{ lineHeight: '1.2' }}>
                                 {displayPriority}
                               </div>
                             </td>
                           )}
-
-                          {/* M1 Initiative Name - Column 2 */}
-                          <td className="px-1.5 py-1 align-top" style={{ backgroundColor: '#78909c' }}>
-                            <div className="text-xs font-normal leading-tight line-clamp-2 text-white" style={{ lineHeight: '1.2' }}>
-                              {original_name}
-                            </div>
-                          </td>
 
                           {/* Quarter Columns */}
                           {quarters.map((quarter) => {
@@ -288,7 +308,7 @@ export function TimelineByPriority({ data, quarters, selectedMarkets }: Timeline
             {/* Empty State */}
             {sortedMarkets.length === 0 && (
               <tr>
-                <td colSpan={2 + quarters.length} className="p-12 text-center text-gray-500 text-xs">
+                <td colSpan={1 + quarters.length} className="p-12 text-center text-gray-500 text-xs">
                   No roadmap data available. Upload a CSV to get started.
                 </td>
               </tr>

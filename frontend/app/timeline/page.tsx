@@ -74,7 +74,7 @@ function DashboardContent() {
       // Extract all available M0 priorities from unfiltered data
       const priorities = Array.from(
         new Set(unfilteredData.data.map((m0) => m0.m0_priority))
-      );
+      ).sort((a, b) => a.localeCompare(b));
       setM0Priorities(priorities);
 
       // Now fetch filtered data for display
