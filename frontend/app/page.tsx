@@ -27,6 +27,7 @@ interface Pillar {
   description: string
   color: string
   hoverColor: string
+  headerBg: string
   priorities: string[]
   isAvailable: boolean
 }
@@ -36,8 +37,9 @@ const pillars: Pillar[] = [
     id: 'strategic',
     name: 'Strategic Priorities',
     description: 'Drive and accelerate high-impact value',
-    color: '#2952CC',
-    hoverColor: '#1e3a8a',
+    color: '#0c5bde',
+    hoverColor: '#0a4ab8',
+    headerBg: '#cfe2f3',
     priorities: [
       'C2C',
       'eBay Live',
@@ -55,8 +57,9 @@ const pillars: Pillar[] = [
     id: 'horizontal',
     name: 'Horizontal Innovation',
     description: 'Customer facing innovations driving value across multiple or GCAT goals',
-    color: '#7B68B8',
-    hoverColor: '#5b4a8a',
+    color: '#8e7cc3',
+    hoverColor: '#7566a8',
+    headerBg: '#d9d2e9',
     priorities: [
       'Trust',
       'B2C',
@@ -74,8 +77,9 @@ const pillars: Pillar[] = [
     id: 'platform-innovation',
     name: 'Platform Innovation',
     description: 'Scalable Tech Enablers Driving Innovation and Efficiency for the Business',
-    color: '#2C5F6F',
-    hoverColor: '#1e4250',
+    color: '#45818e',
+    hoverColor: '#376873',
+    headerBg: '#d0e0e3',
     priorities: [
       'Agentic Commerce',
       'Search Platform',
@@ -90,8 +94,9 @@ const pillars: Pillar[] = [
     id: 'platform-essentials',
     name: 'Platform Essentials',
     description: 'Maintaining a great customer experience and tech health',
-    color: '#8B5A3C',
-    hoverColor: '#6b4530',
+    color: '#b45f06',
+    hoverColor: '#954e05',
+    headerBg: '#fff2cc',
     priorities: [
       'Availability',
       'Security, RAI, DS and Compliance',
@@ -156,7 +161,7 @@ function PillarColumn({ pillar }: { pillar: Pillar }) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-gray-100 border-b-2 border-gray-300 px-4 py-3 text-center">
+      <div className="border-b-2 border-gray-300 px-4 py-3 text-center" style={{ backgroundColor: pillar.headerBg }}>
         <h2 className="text-base font-bold text-gray-900 leading-tight">
           {pillar.name}
         </h2>
