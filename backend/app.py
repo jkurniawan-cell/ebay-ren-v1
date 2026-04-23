@@ -7,7 +7,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-from app.airtable_mcp import get_roadmap_data, get_unique_m0_priorities
+from app.airtable_data import get_roadmap_data, get_unique_m0_priorities, get_dump_metadata
 from app.filters import RoadmapFilter
 from app.data_merger import DataMerger
 
@@ -20,8 +20,15 @@ CORS(app)  # Enable CORS for frontend
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint."""
-    return jsonify({'status': 'healthy', 'service': 'eBay REN API'})
+    """Health check endpoint with data dump info."""
+    metadata = get_dump_metadata()
+    return jsonify({
+        'status': 'healthy',
+        'service': 'eBay REN API',
+        'data_source': 'local_json_dump',
+        'last_updated': metadata.get('last_updated', 'unknown'),
+        'total_launches': metadata.get('total_launches', 0)
+    })
 
 @app.route('/api/refresh', methods=['POST'])
 def refresh_cache():

@@ -51,3 +51,7 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Data dumps (user-specific, refreshed nightly)
+backend/data/airtable_dump.json
+backend/data/dump.log
