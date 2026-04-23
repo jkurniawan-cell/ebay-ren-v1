@@ -129,7 +129,9 @@ class RoadmapFilter:
         all_change_values = set()
 
         for launch in launches:
-            roadmap_change = launch.get('roadmap_change', '').lower()
+            roadmap_change_raw = launch.get('roadmap_change')
+            # Handle None/null values - convert to empty string
+            roadmap_change = (roadmap_change_raw or '').lower()
             all_change_values.add(roadmap_change)
 
             if roadmap_change in change_set_lower:
@@ -137,7 +139,7 @@ class RoadmapFilter:
             else:
                 rejected.append({
                     'launch_name': launch.get('key_launch_name', 'Unknown'),
-                    'roadmap_change': launch.get('roadmap_change', ''),
+                    'roadmap_change': roadmap_change_raw,
                     'filter_types': change_types
                 })
 
