@@ -50,17 +50,43 @@ class DataMerger:
                     'key_launches': []
                 }
 
-            # Add effective countries list to launch
-            # Use already-parsed target_geos_list if available, otherwise compute
-            if launch.get('target_geos_list'):
-                # Already parsed during CSV upload
+            # Transform Airtable field names to match frontend expectations
+
+            # 1. Parse geo_category_details into target_geos_list array
+            geo_details = launch.get('geo_category_details', '')
+            if geo_details and isinstance(geo_details, str):
+                # Split by comma and strip whitespace
+                launch['target_geos_list'] = [g.strip() for g in geo_details.split(',') if g.strip()]
+            else:
+                launch['target_geos_list'] = []
+
+            # 2. Parse cross_priority_dependency into cross_priority_dependencies_list array
+            cross_dep = launch.get('cross_priority_dependency', '')
+            if cross_dep and isinstance(cross_dep, str):
+                # Split by comma and strip whitespace
+                launch['cross_priority_dependencies_list'] = [d.strip() for d in cross_dep.split(',') if d.strip()]
+            else:
+                launch['cross_priority_dependencies_list'] = []
+
+            # 3. Map quarter field names: Airtable → Frontend
+            launch['updated_start_quarter'] = launch.get('start_quarter', '')
+            launch['updated_end_quarter'] = launch.get('end_quarter', '')
+            launch['original_start_quarter'] = launch.get('initial_start_quarter', '')
+            launch['original_end_quarter'] = launch.get('initial_end_quarter', '')
+
+            # 4. Add effective countries list for filtering
+            if launch['target_geos_list']:
                 launch['effective_countries_list'] = launch['target_geos_list']
             else:
-                # Fallback: compute from geo_category and target_geos
+                # Fallback: compute from geo_category
                 launch['effective_countries_list'] = get_effective_countries(
                     launch.get('geo_category', ''),
-                    launch.get('target_geos', '')
+                    launch.get('geo_category_details', '')
                 )
+
+            # 5. Add missing fields with defaults
+            launch['highlighted'] = False  # Default: not highlighted
+            launch['roadmap_ownership'] = launch.get('roadmap_ownership', '')  # Empty if not present
 
             # Add launch to M1
             result[m0_name]['m1_initiatives'][m1_name]['key_launches'].append(launch)
@@ -116,17 +142,43 @@ class DataMerger:
                     'key_launches': []
                 }
 
-            # Add effective countries list to launch
-            # Use already-parsed target_geos_list if available, otherwise compute
-            if launch.get('target_geos_list'):
-                # Already parsed during CSV upload
+            # Transform Airtable field names to match frontend expectations
+
+            # 1. Parse geo_category_details into target_geos_list array
+            geo_details = launch.get('geo_category_details', '')
+            if geo_details and isinstance(geo_details, str):
+                # Split by comma and strip whitespace
+                launch['target_geos_list'] = [g.strip() for g in geo_details.split(',') if g.strip()]
+            else:
+                launch['target_geos_list'] = []
+
+            # 2. Parse cross_priority_dependency into cross_priority_dependencies_list array
+            cross_dep = launch.get('cross_priority_dependency', '')
+            if cross_dep and isinstance(cross_dep, str):
+                # Split by comma and strip whitespace
+                launch['cross_priority_dependencies_list'] = [d.strip() for d in cross_dep.split(',') if d.strip()]
+            else:
+                launch['cross_priority_dependencies_list'] = []
+
+            # 3. Map quarter field names: Airtable → Frontend
+            launch['updated_start_quarter'] = launch.get('start_quarter', '')
+            launch['updated_end_quarter'] = launch.get('end_quarter', '')
+            launch['original_start_quarter'] = launch.get('initial_start_quarter', '')
+            launch['original_end_quarter'] = launch.get('initial_end_quarter', '')
+
+            # 4. Add effective countries list for filtering
+            if launch['target_geos_list']:
                 launch['effective_countries_list'] = launch['target_geos_list']
             else:
-                # Fallback: compute from geo_category and target_geos
+                # Fallback: compute from geo_category
                 launch['effective_countries_list'] = get_effective_countries(
                     launch.get('geo_category', ''),
-                    launch.get('target_geos', '')
+                    launch.get('geo_category_details', '')
                 )
+
+            # 5. Add missing fields with defaults
+            launch['highlighted'] = False  # Default: not highlighted
+            launch['roadmap_ownership'] = launch.get('roadmap_ownership', '')  # Empty if not present
 
             # Add launch to M1
             result[m0_name]['m1_initiatives'][m1_name]['key_launches'].append(launch)

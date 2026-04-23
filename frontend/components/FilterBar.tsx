@@ -11,54 +11,32 @@ import { MARKETS, ROADMAP_CHANGES, COUNTRY_FLAGS, COUNTRY_NAMES } from '@/lib/co
 
 interface FilterBarProps {
   m0Priorities: string[];
-  availableDeliveryOwners: string[];
-  availableBeneficiaries: string[];
   availableMarkets: string[];
   availableRoadmapChanges: string[];
   selectedM0s: string[];
   selectedMarkets: string[];
   selectedRoadmapChanges: string[];
-  selectedDeliveryOwners: string[];
-  selectedBeneficiaries: string[];
   onM0Change: (selected: string[]) => void;
   onMarketChange: (selected: string[]) => void;
   onRoadmapChangeChange: (selected: string[]) => void;
-  onDeliveryOwnerChange: (selected: string[]) => void;
-  onBeneficiaryChange: (selected: string[]) => void;
   onReset: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
-  mode: 'upcoming' | 'approved';
-  selectedHistoryCycle?: string;
-  availableCycles?: string[];
-  onHistoryCycleChange?: (cycle: string) => void;
-  uploadComponent?: React.ReactNode;
 }
 
 export function FilterBar({
   m0Priorities,
-  availableDeliveryOwners,
-  availableBeneficiaries,
   availableMarkets,
   availableRoadmapChanges,
   selectedM0s,
   selectedMarkets,
   selectedRoadmapChanges,
-  selectedDeliveryOwners,
-  selectedBeneficiaries,
   onM0Change,
   onMarketChange,
   onRoadmapChangeChange,
-  onDeliveryOwnerChange,
-  onBeneficiaryChange,
   onReset,
   onRefresh,
-  isRefreshing,
-  mode,
-  selectedHistoryCycle,
-  availableCycles,
-  onHistoryCycleChange,
-  uploadComponent
+  isRefreshing
 }: FilterBarProps) {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const handleMultiSelectChange = (
@@ -211,9 +189,7 @@ export function FilterBar({
   const hasActiveFilters =
     selectedM0s.length > 0 ||
     selectedMarkets.length > 0 ||
-    selectedRoadmapChanges.length > 0 ||
-    selectedDeliveryOwners.length > 0 ||
-    selectedBeneficiaries.length > 0;
+    selectedRoadmapChanges.length > 0;
 
   return (
     <div>
@@ -237,28 +213,13 @@ export function FilterBar({
           </button>
           {hasActiveFilters && (
             <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-600 rounded">
-              {[selectedM0s, selectedMarkets, selectedRoadmapChanges, selectedDeliveryOwners, selectedBeneficiaries]
+              {[selectedM0s, selectedMarkets, selectedRoadmapChanges]
                 .filter(arr => arr.length > 0).length} active
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Planning Cycle Dropdown (History mode) */}
-          {mode === 'approved' && availableCycles && availableCycles.length > 0 && onHistoryCycleChange && (
-            <select
-              value={selectedHistoryCycle}
-              onChange={(e) => onHistoryCycleChange(e.target.value)}
-              className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {availableCycles.map(cycle => (
-                <option key={cycle} value={cycle}>{cycle}</option>
-              ))}
-            </select>
-          )}
-
-          {/* Upload CSV (Live mode) */}
-          {uploadComponent}
 
           {hasActiveFilters && (
             <button

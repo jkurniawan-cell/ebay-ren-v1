@@ -8,11 +8,8 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/Header';
-import { ModeToggle } from '@/components/ModeToggle';
 import { FilterBar } from '@/components/FilterBar';
 import { Timeline } from '@/components/Timeline';
-import { CSVUpload } from '@/components/CSVUpload';
-import { ApproveButton } from '@/components/ApproveButton';
 import { StatusChart } from '@/components/StatusChart';
 import { RationaleChart } from '@/components/RationaleChart';
 import { EngCapacityChart } from '@/components/EngCapacityChart';
@@ -26,23 +23,14 @@ import html2canvas from 'html2canvas';
 function DashboardContent() {
   const searchParams = useSearchParams();
 
-  const [mode, setMode] = useState<'upcoming' | 'approved'>('upcoming');
   const [roadmapData, setRoadmapData] = useState<RoadmapData | null>(null);
   const [m0Priorities, setM0Priorities] = useState<string[]>([]);
-  const [availableDeliveryOwners, setAvailableDeliveryOwners] = useState<string[]>([]);
-  const [availableBeneficiaries, setAvailableBeneficiaries] = useState<string[]>([]);
   const [availableMarkets, setAvailableMarkets] = useState<string[]>([]);
   const [availableRoadmapChanges, setAvailableRoadmapChanges] = useState<string[]>([]);
   const [quarters, setQuarters] = useState<QuarterLabel[]>([]);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [timelineRef, setTimelineRef] = useState<HTMLDivElement | null>(null);
-
-  // History mode state
-  const [selectedHistoryCycle, setSelectedHistoryCycle] = useState<string>('Q2 refresh 2026');
-  const [availableCycles, setAvailableCycles] = useState<string[]>([]);
 
   // Filter state - initialize from URL params if present
   const [selectedM0s, setSelectedM0s] = useState<string[]>(() => {
@@ -51,8 +39,6 @@ function DashboardContent() {
   });
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedRoadmapChanges, setSelectedRoadmapChanges] = useState<string[]>([]);
-  const [selectedDeliveryOwners, setSelectedDeliveryOwners] = useState<string[]>([]);
-  const [selectedBeneficiaries, setSelectedBeneficiaries] = useState<string[]>([]);
 
   // Page toggle state
   const [activeView, setActiveView] = useState<'roadmap' | 'changelog' | 'by-priority'>('roadmap');
@@ -62,13 +48,9 @@ function DashboardContent() {
     try {
       // First, fetch unfiltered data to get all available filter options
       const unfilteredData = await apiClient.getRoadmapData({
-        mode: mode === 'upcoming' ? 'draft' : 'approved',
-        planning_cycle: mode === 'upcoming' ? 'Current' : selectedHistoryCycle,
         m0_priorities: [],
         markets: [],
-        roadmap_changes: [],
-        delivery_owners: [],
-        beneficiaries: []
+        roadmap_changes: []
       });
 
       // Extract all available M0 priorities from unfiltered data
@@ -79,13 +61,9 @@ function DashboardContent() {
 
       // Now fetch filtered data for display
       const data = await apiClient.getRoadmapData({
-        mode: mode === 'upcoming' ? 'draft' : 'approved',
-        planning_cycle: mode === 'upcoming' ? 'Current' : selectedHistoryCycle,
         m0_priorities: selectedM0s,
         markets: selectedMarkets,
-        roadmap_changes: selectedRoadmapChanges,
-        delivery_owners: selectedDeliveryOwners,
-        beneficiaries: selectedBeneficiaries
+        roadmap_changes: selectedRoadmapChanges
       });
 
       setRoadmapData(data);
@@ -94,26 +72,6 @@ function DashboardContent() {
       const allUnfilteredLaunches = unfilteredData.data.flatMap((m0) =>
         m0.m1_initiatives.flatMap((m1) => m1.key_launches)
       );
-
-      // Extract available delivery owners from unfiltered data
-      const deliveryOwners = Array.from(
-        new Set(
-          allUnfilteredLaunches.map((launch) => launch.roadmap_ownership).filter(Boolean)
-        )
-      ).sort() as string[];
-      setAvailableDeliveryOwners(deliveryOwners);
-
-      // Extract available beneficiaries from unfiltered data
-      const beneficiaries = Array.from(
-        new Set(
-          unfilteredData.data.flatMap((m0) =>
-            m0.m1_initiatives.flatMap((m1) =>
-              m1.key_launches.flatMap((launch) => launch.cross_priority_dependencies_list)
-            )
-          ).filter(Boolean)
-        )
-      ).sort() as string[];
-      setAvailableBeneficiaries(beneficiaries);
 
       // Extract available markets from unfiltered data
       const markets = Array.from(
@@ -218,30 +176,6 @@ function DashboardContent() {
     }
   };
 
-  // Handle CSV upload success
-  const handleUploadSuccess = async () => {
-    setUploadSuccess(true);
-    setUploadError(null);
-    await fetchRoadmapData();
-    setTimeout(() => setUploadSuccess(false), 3000);
-  };
-
-  // Handle CSV upload error
-  const handleUploadError = (error: string) => {
-    setUploadError(error);
-    setUploadSuccess(false);
-  };
-
-  // Handle approve planning cycle
-  const handleApprove = async (cycle: string) => {
-    try {
-      await apiClient.createSnapshot(cycle, 'Jordan');
-      alert(`${cycle} approved and frozen as snapshot`);
-    } catch (error) {
-      console.error('Failed to approve:', error);
-      alert('Failed to approve planning cycle');
-    }
-  };
 
   // Reset all filters
   const handleResetFilters = () => {
@@ -315,26 +249,10 @@ function DashboardContent() {
     window.open(slideUrl, '_blank');
   };
 
-  // Fetch available planning cycles for History dropdown
-  useEffect(() => {
-    const fetchCycles = async () => {
-      try {
-        const cycles = await apiClient.getSnapshotCycles();
-        setAvailableCycles(cycles);
-        if (cycles.length > 0 && !selectedHistoryCycle) {
-          setSelectedHistoryCycle(cycles[0]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch planning cycles:', error);
-      }
-    };
-    fetchCycles();
-  }, []);
-
   // Initial data fetch
   useEffect(() => {
     fetchRoadmapData();
-  }, [selectedM0s, selectedMarkets, selectedRoadmapChanges, selectedDeliveryOwners, selectedBeneficiaries, mode, selectedHistoryCycle]);
+  }, [selectedM0s, selectedMarkets, selectedRoadmapChanges]);
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -355,9 +273,7 @@ function DashboardContent() {
               </a>
               <span className="text-gray-300">|</span>
               <h1 className="text-sm font-semibold text-gray-900">eBay REN</h1>
-            </div>
-            <div className="scale-75 origin-left">
-              <ModeToggle mode={mode} onModeChange={setMode} />
+              <span className="text-[10px] text-gray-500 ml-2">Live data from Airtable</span>
             </div>
           </div>
 
@@ -424,53 +340,19 @@ function DashboardContent() {
           <div className="scale-90 origin-top-left">
             <FilterBar
               m0Priorities={m0Priorities}
-              availableDeliveryOwners={availableDeliveryOwners}
-              availableBeneficiaries={availableBeneficiaries}
               availableMarkets={availableMarkets}
               availableRoadmapChanges={availableRoadmapChanges}
               selectedM0s={selectedM0s}
               selectedMarkets={selectedMarkets}
               selectedRoadmapChanges={selectedRoadmapChanges}
-              selectedDeliveryOwners={selectedDeliveryOwners}
-              selectedBeneficiaries={selectedBeneficiaries}
               onM0Change={setSelectedM0s}
               onMarketChange={setSelectedMarkets}
               onRoadmapChangeChange={setSelectedRoadmapChanges}
-              onDeliveryOwnerChange={setSelectedDeliveryOwners}
-              onBeneficiaryChange={setSelectedBeneficiaries}
               onReset={handleResetFilters}
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
-              mode={mode}
-              selectedHistoryCycle={selectedHistoryCycle}
-              availableCycles={availableCycles}
-              onHistoryCycleChange={setSelectedHistoryCycle}
-              uploadComponent={
-                mode === 'upcoming' ? (
-                  <CSVUpload
-                    onUploadSuccess={handleUploadSuccess}
-                    onUploadError={handleUploadError}
-                  />
-                ) : undefined
-              }
             />
           </div>
-
-          {/* Upload Status Messages */}
-          {(uploadSuccess || uploadError) && (
-            <div className="mt-1">
-              {uploadSuccess && (
-                <div className="px-2 py-1 bg-green-50 border border-green-200 rounded text-[10px] text-green-800 flex items-center gap-1">
-                  <span>✓</span> Uploaded
-                </div>
-              )}
-              {uploadError && (
-                <div className="px-2 py-1 bg-red-50 border border-red-200 rounded text-[10px] text-red-800 flex items-center gap-1">
-                  <span>✕</span> {uploadError}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
